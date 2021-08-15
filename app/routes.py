@@ -4,7 +4,6 @@ from werkzeug.utils import redirect
 from app import app, db
 from app.models import Category, Meal
 from sqlalchemy.sql.expression import func
-from sqlalchemy.orm import lazyload
 
 
 @app.route("/")
