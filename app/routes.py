@@ -47,4 +47,26 @@ def addtocart(meal_id):
 
 @app.route("/cart/")
 def cart():
-    return render_template("cart.html")
+    delete_id = 0
+    if 'cart' not in session:
+        session["cart"] = []
+    if 'sum' not in session:
+        session["sum"] = 0
+    if 'delete_id' in session:
+        delete_id = session.pop("delete_id")
+    cart_rows = []
+    for meal_id in session["cart"]:
+        meal = db.session.query(Meal).get_or_404(meal_id)
+        cart_rows.append([meal.title, meal.price, meal.id])
+    return render_template("cart.html", cart_rows=cart_rows, delete_id=delete_id)
+
+
+@app.route("/deletefromcart/<int:meal_id>/")
+def deletefromcart(meal_id):
+    if 'cart' not in session:
+        session["cart"] = []
+    if 'sum' not in session:
+        session["sum"] = 0
+    session["cart"].pop(meal_id)
+    session["delete_id"] = meal_id
+    return redirect(url_for('cart'))
