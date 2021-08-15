@@ -1,4 +1,4 @@
-from flask import render_template, request, url_for
+from flask import render_template, request, url_for, session
 from werkzeug.utils import redirect
 
 from app import app, db
@@ -8,7 +8,7 @@ from sqlalchemy.orm import lazyload
 
 
 @app.route("/")
-def index_page():
+def index():
     categories = db.session.query(Category).order_by(Category.title).all()
     categories_show = {}
     for cat in categories:
@@ -20,7 +20,7 @@ def index_page():
 
 
 @app.route("/auth/", methods=["GET", "POST"])
-def auth_page():
+def auth():
     if request.method == 'POST':
         return redirect(url_for('account'))
     else:
@@ -28,5 +28,23 @@ def auth_page():
 
 
 @app.route("/account/")
-def account_page():
+def account():
     return render_template("account.html")
+
+
+@app.route("/addtocart/<int:meal_id>/")
+def addtocart(meal_id):
+    meal = db.session.query(Meal).get_or_404(meal_id)
+    if 'cart' not in session:
+        session["cart"] = []
+    if 'sum' not in session:
+        session["sum"] = 0
+    if meal_id not in session["cart"]:
+        session["cart"].append(meal_id)
+        session["sum"] += meal.price
+    return redirect(url_for('cart'))
+
+
+@app.route("/cart/")
+def cart():
+    return render_template("cart.html")
