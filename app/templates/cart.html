@@ -5,51 +5,57 @@
     {% if not delete_id == 0 %}
     <div class="alert alert-warning" role="alert">Блюдо удалено из корзины</div>
     {% endif %}
-    <div class="alert alert-warning" role="alert">Чтобы сделать заказ – <a href="/login.html">войдите</a> или <a href="/register.html">зарегистрируйтесь</a></div>
-
+    {% if not session["user"] %}
+    <div class="alert alert-warning" role="alert">Чтобы сделать заказ – <a href="{{ url_for('auth') }}">войдите</a> или <a href="{{ url_for('register') }}">зарегистрируйтесь</a></div>
+    {% endif %}
     <div class="row mt-5">
 
 
         <div class="col-4">
-          <form action="/cart/" method="POST">
+          <form action="/ordered/" method="POST">
+          {% if error_msg %}
+          <div>
+          {{ error_msg }}
+          </div>
+          {% endif %}
+          {% for fieldName, errorMessages in form.errors.items() %}
+            {% for err in errorMessages %}
+            <p class="alert-warning"> {{ err }} </p>
+            {% endfor %}
+          {% endfor %}
+          {{ form.csrf_token() }}
           <h4 class="">Ваши данные</h4>
           <div class=" md-4 order-md-1">
             <div class="mt-3 mb-3">
-              <label for="name">Ваше имя</label>
-              <input type="text" class="font-weight-bold form-control" id="name">
+              {{ form.clientName.label() }}
+              {{ form.clientName(class="font-weight-bold form-control") }}
             </div>
           </div>
           <div class=" md-4 order-md-1">
             <div class="mt-3 mb-3">
-              <label for="name">Адрес</label>
-              <input type="text" class="font-weight-bold form-control" id="name">
+              {{ form.clientAddress.label() }}
+              {{ form.clientAddress(class="font-weight-bold form-control") }}
             </div>
           </div>
           <div class="md-4 form-label-group">
-            <label for="name">Электропочта</label>
-            <input type="email" id="inputEmail" class="form-control" required autofocus>
-            <label for="inputEmail"></label>
+              {{ form.clientEmail.label() }}
+            {% if session["user"] %}
+              {{ form.clientEmail(class="font-weight-bold form-control", value=session["user"]["email"]) }}
+            {% else %}
+              {{ form.clientEmail(class="font-weight-bold form-control") }}
+            {% endif%}
           </div>
           <div class=" md-4 order-md-1">
             <div class="mt-3 mb-3">
-              <label for="name">Телефон</label>
-              <input type="text" class="font-weight-bold form-control" id="name">
+              {{ form.clientPhone.label() }}
+              {{ form.clientPhone(class="font-weight-bold form-control") }}
             </div>
-
-           <input type="hidden" value = '{% if session.get("sum") is none %}0{% else %}{{ session.get("sum")}}{% endif %}' name="order_summ">
-           <input type="hidden" value='{{ session["cart"] }}' name="order_cart">
-
-
+        </div>
+        {% if session["user"] %}
+          <button type="submit" class=" mt-3 mb-5 btn btn-danger">Оформить заказ</button>
+        {% endif %}
           </form>
         </div>
-
-
-
-          <button type="submit" class=" mt-3 mb-5 btn btn-danger">Оформить заказ</button>
-
-        </div>
-
-
 
       <div class="col-1"></div>
       <div class="col-7">
@@ -62,13 +68,13 @@
               <td></td>
               <td>1</td>
               <td>{{ cart_row[1] }}</td>
-              <td><a class="text-danger" href="#">Удалить</a></td>
+              <td><a class="text-danger" href="/deletefromcart/{{ cart_row[2] }}">Удалить</a></td>
             </tr>
           {% endfor %}
           </tbody>
         </table>
         <hr>
-        <p class="display-4 my-2 ">875 руб</p>
+        <p class="display-4 my-2 ">{% if session.get("sum") is none %}0{% else %}{{ session.get("sum")}}{% endif %} руб</p>
       </div>
     </div>
   </main>

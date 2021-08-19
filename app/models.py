@@ -1,22 +1,32 @@
 from app import db
+from werkzeug.security import generate_password_hash, check_password_hash
 
 order_meals_table = db.Table('order_meals',
-    db.Column('order_id', db.Integer, db.ForeignKey('orders.id')),
-    db.Column('meal_id', db.Integer, db.ForeignKey('meals.id')),
-    db.Column('count', db.Integer),
-    db.Column('sum', db.Float(2))
-)
+                             db.Column('order_id', db.Integer, db.ForeignKey('orders.id')),
+                             db.Column('meal_id', db.Integer, db.ForeignKey('meals.id'))
+                             )
 
 
 class User(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(100), nullable=False)
-    password = db.Column(db.String(100))
+    email = db.Column(db.String(100), nullable=False, index=True, unique=True)
+    password_hash = db.Column(db.String(128), nullable=False)
     orders = db.relationship('Order', back_populates='user')
 
     def __repr__(self):
         return '<User {} ({})>'.format(self.email, self.id)
+
+    @property
+    def password(self):
+        raise AttributeError("Вам не нужно знать пароль!")
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def password_valid(self, password):
+        return check_password_hash(self.password_hash, password)
 
 
 class Meal(db.Model):
